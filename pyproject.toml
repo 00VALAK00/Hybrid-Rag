@@ -1,0 +1,18 @@
+[project]
+name = "hybrid-rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastembed>=0.7.3",
+    "langchain>=0.3.27",
+    "langchain-community>=0.3.30",
+    "langchain-ollama>=0.3.8",
+    "langgraph>=0.6.8",
+    "langsmith>=0.4.31",
+    "ollama>=0.6.0",
+    "pypdf>=6.1.1",
+    "qdrant-client>=1.15.1",
+    "sentence-transformers>=5.1.1",
+]
