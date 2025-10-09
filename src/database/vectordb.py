@@ -1,7 +1,6 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import SparseVectorParams,VectorParams,SparseVector, Prefetch, Distance, PointStruct, MultiVectorConfig, MultiVectorComparator,HnswConfigDiff,Modifier
 from fastembed import TextEmbedding, SparseTextEmbedding, LateInteractionTextEmbedding  
-from sentence_transformers import SentenceTransformer
 
 import sys
 from pathlib import Path
@@ -25,12 +24,13 @@ class QdrantVectorDB:
         self.client = QdrantClient(url=url, api_key=api_key, timeout=360)
         self.collection = collection
 
-        self.dense_embedding_model = TextEmbedding("sentence-transformers/all-MiniLM-L6-v2")
+        self.dense_embedding_model = TextEmbedding("BAAI/bge-base-en")
         self.bm25_embedding_model = SparseTextEmbedding("Qdrant/bm25")
         self.late_interaction_embedding_model = LateInteractionTextEmbedding("colbert-ir/colbertv2.0")
 
         if not self.client.collection_exists(self.collection):
             logging.info(f"Collection {self.collection} was not found. Creating Now...")
+        
 
             self.client.create_collection(
                 collection_name=self.collection,
@@ -53,7 +53,12 @@ class QdrantVectorDB:
                 }
                 
             )
-        logging.info(f"Collection {self.collection} was found. Skipping creation")
+            logging.info(f"Collection {self.collection} was found. Skipping creation")
+
+        if self.client.count(self.collection,exact=False).count == 0:
+            logging.info(f"Collection {self.collection} is empty. Ingesting data now")
+            self.upsertData()
+
 
 
     def embed_chunks(self, chunks: list[dict])-> list[PointStruct]:
@@ -128,3 +133,6 @@ class QdrantVectorDB:
         
         return [f"context{i+1}: "+ str(result.payload) + "\n\n" for i, result in enumerate(results)]
     
+    def delete_collection(self):
+        self.client.delete_collection(self.collection, timeout=360)
+        logging.info(f"Collection {self.collection} was deleted")
